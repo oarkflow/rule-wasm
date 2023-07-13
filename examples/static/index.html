@@ -24,7 +24,7 @@
     var checkRule = document.querySelector('#checkRuleButton')
     var outputRule = document.querySelector('#outputRule')
 	checkRule.addEventListener('click', function() {
-		outputRule.innerHTML = applyRule(dataField.value, ruleField.value) // The function 'wasmHash' is defined in the Go code
+		console.log(applyRule(dataField.value, ruleField.value))
 	});
 </script>
 </body>

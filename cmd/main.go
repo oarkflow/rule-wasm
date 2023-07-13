@@ -1,30 +1,21 @@
 package main
 
 import (
-	"crypto"
 	_ "crypto/sha512"
-	"encoding/hex"
 	"encoding/json"
+	"syscall/js"
+
 	"github.com/oarkflow/pkg/evaluate"
+	"github.com/oarkflow/pkg/rule"
 	"github.com/oarkflow/pkg/str"
 	"github.com/oarkflow/pkg/timeutil"
-	"github.com/oarkflow/rule-wasm/rule"
-	"syscall/js"
 )
 
 func main() {
 	evaluate.AddCustomOperator("age", builtinAge)
 	done := make(chan struct{}, 0)
-	js.Global().Set("wasmHash", js.FuncOf(hash))
 	js.Global().Set("applyRule", js.FuncOf(applyRule))
 	<-done
-}
-
-func hash(this js.Value, args []js.Value) interface{} {
-	h := crypto.SHA512.New()
-	h.Write([]byte(args[0].String()))
-
-	return hex.EncodeToString(h.Sum(nil))
 }
 
 func applyRule(this js.Value, args []js.Value) interface{} {
@@ -32,17 +23,17 @@ func applyRule(this js.Value, args []js.Value) interface{} {
 	var data map[string]any
 	err := json.Unmarshal(str.ToByte(args[1].String()), &rules)
 	if err != nil {
-		return err
+		return err.Error()
 	}
 	err = json.Unmarshal(str.ToByte(args[0].String()), &data)
 	if err != nil {
-		return err
+		return err.Error()
 	}
 	var ds []any
 	for _, r := range rules {
 		d, err := r.Apply(data)
 		if err != nil {
-			return err
+			return err.Error()
 		}
 		ds = append(ds, d)
 	}
