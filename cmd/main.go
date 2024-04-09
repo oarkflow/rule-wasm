@@ -1,8 +1,12 @@
+//go:build JS
+// +build JS
+
 package main
 
 import (
 	_ "crypto/sha512"
 	"encoding/json"
+	"fmt"
 	"syscall/js"
 
 	"github.com/oarkflow/pkg/evaluate"
@@ -13,6 +17,7 @@ import (
 
 func main() {
 	evaluate.AddCustomOperator("age", builtinAge)
+	evaluate.AddCustomOperator("string", toString)
 	done := make(chan struct{}, 0)
 	js.Global().Set("applyRule", js.FuncOf(applyRule))
 	<-done
@@ -53,4 +58,16 @@ func builtinAge(ctx evaluate.EvalContext) (interface{}, error) {
 		return nil, err
 	}
 	return timeutil.CalculateToNow(t), err
+}
+
+// ToString converts the given value to a string.
+func toString(ctx evaluate.EvalContext) (interface{}, error) {
+	if err := ctx.CheckArgCount(1); err != nil {
+		return nil, err
+	}
+	left, err := ctx.Arg(0)
+	if err != nil {
+		return nil, err
+	}
+	return fmt.Sprintf("%v", left), nil
 }
